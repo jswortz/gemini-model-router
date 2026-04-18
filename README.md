@@ -87,6 +87,23 @@ The `Backend` Protocol takes an optional `vendor_session_id`; vLLM ignores it
 independently, so swapping back to a previously-used vendor mid-session resumes
 *that* vendor's thread.
 
+## Config web UI
+
+For the times when editing YAML by hand is the wrong tool:
+
+```bash
+pip install -e ".[configsite]"
+router-config            # opens at http://127.0.0.1:8765
+```
+
+A single-page form for `router.yaml` + `anchors.yaml` — backends, weights,
+exemplars, sandbox/logging knobs. Saves go through the same pydantic schema
+the router itself loads with, so the form can never write a config the
+router can't parse. Every save snapshots the previous file as
+`router.yaml.bak-<timestamp>` next to it. The "rebuild anchor centroids"
+button re-embeds the MiniLM cache so anchor edits take effect on the next
+router invocation.
+
 ## Self-improvement loop
 
 Every call appends a line to `~/.router/sessions/router_history.jsonl` in the
