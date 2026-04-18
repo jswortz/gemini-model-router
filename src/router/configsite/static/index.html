@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>router-config</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1f262e;
+    --border: #30363d;
+    --fg: #c9d1d9;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 16px; background: var(--panel);
+  }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .paths { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  header .actions { margin-left: auto; display: flex; gap: 8px; }
+  main { padding: 24px; max-width: 1100px; margin: 0 auto; display: grid; gap: 24px; }
+  section.card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 20px;
+  }
+  section.card h2 {
+    margin: 0 0 14px; font-size: 14px; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .row { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  .row.three { grid-template-columns: repeat(3, 1fr); }
+  .row.four { grid-template-columns: repeat(4, 1fr); }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+  label > span.req::after { content: " *"; color: var(--bad); }
+  input, select, textarea {
+    background: var(--panel-2); color: var(--fg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 8px; font: inherit; font-family: var(--mono);
+  }
+  input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+  textarea { font-size: 12px; resize: vertical; min-height: 60px; }
+  button {
+    background: var(--panel-2); color: var(--fg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 12px; cursor: pointer; font: inherit;
+  }
+  button:hover { background: var(--border); }
+  button.primary { background: #1f6feb; border-color: #1f6feb; color: white; }
+  button.primary:hover { background: #388bfd; }
+  button.danger { color: var(--bad); border-color: var(--bad); }
+  button.danger:hover { background: rgba(248,81,73,0.1); }
+  .backend {
+    border: 1px solid var(--border); border-radius: 6px; padding: 14px;
+    margin-bottom: 12px; background: var(--panel-2);
+  }
+  .backend-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+  }
+  .backend-head input { font-weight: 600; font-size: 14px; }
+  .backend-head select { width: auto; }
+  .backend-head .pull-right { margin-left: auto; }
+  .anchor-block { margin-bottom: 16px; }
+  .anchor-block h3 { font-size: 13px; margin: 0 0 6px; color: var(--fg); font-family: var(--mono); }
+  .anchor-block textarea { width: 100%; min-height: 200px; }
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 18px;
+    border-radius: 6px; background: var(--panel); border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4); max-width: 420px;
+    transition: opacity 0.2s; z-index: 100;
+  }
+  .toast.good { border-color: var(--good); }
+  .toast.bad { border-color: var(--bad); color: var(--bad); }
+  details { margin-top: 8px; }
+  details > summary { cursor: pointer; color: var(--muted); user-select: none; }
+  pre.json {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    padding: 10px; margin: 8px 0 0; font-family: var(--mono); font-size: 11px;
+    overflow: auto; max-height: 240px; color: var(--muted);
+  }
+  .help { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<header>
+  <h1>router-config</h1>
+  <div class="paths" id="paths">loading paths…</div>
+  <div class="actions">
+    <button id="btn-reload">reload from disk</button>
+    <button id="btn-rebuild">rebuild anchor centroids</button>
+    <button id="btn-save" class="primary">save all</button>
+  </div>
+</header>
+
+<main>
+
+<section class="card">
+  <h2>Policy</h2>
+  <div class="row four">
+    <label><span>quality weight</span><input id="w_quality" type="number" step="0.05" min="0"></label>
+    <label><span>cost weight</span><input id="w_cost" type="number" step="0.05" min="0"></label>
+    <label><span>latency weight</span><input id="w_latency" type="number" step="0.05" min="0"></label>
+    <label><span>sticky bonus</span><input id="sticky_bonus" type="number" step="0.01"></label>
+  </div>
+  <div class="row four" style="margin-top:12px">
+    <label><span>confidence margin (tie-break)</span><input id="confidence_margin" type="number" step="0.01" min="0"></label>
+    <label><span>fallback backend</span><input id="fallback_backend" type="text"></label>
+    <label><span>cost ceiling USD/req</span><input id="cost_ceiling" type="number" step="0.01" min="0"></label>
+    <label><span>classifier softmax τ</span><input id="softmax_temp" type="number" step="0.01" min="0.01"></label>
+  </div>
+  <p class="help">Score = w_q·quality_fit − w_c·cost_norm − w_l·latency_norm + capability_bonus + sticky. Lower confidence margin makes the router commit harder; the fallback backend wins ties.</p>
+</section>
+
+<section class="card">
+  <h2>Backends</h2>
+  <div id="backends"></div>
+  <button id="btn-add-backend">+ add backend</button>
+</section>
+
+<section class="card">
+  <h2>Anchors (per backend)</h2>
+  <p class="help">One exemplar per line. Used by the embedding classifier to compute <code>quality_fit[backend]</code>. After saving, click <strong>rebuild anchor centroids</strong> to refresh the cached MiniLM embeddings.</p>
+  <div id="anchors"></div>
+</section>
+
+<section class="card">
+  <h2>Logging &amp; sandbox</h2>
+  <div class="row three">
+    <label><span>log path</span><input id="log_path" type="text"></label>
+    <label><span>redact prompts</span><select id="redact_prompts"><option>false</option><option>true</option></select></label>
+    <label><span>sandbox mode</span><select id="sandbox_mode"><option>tempdir</option><option>docker</option></select></label>
+  </div>
+  <details><summary>raw merged YAML preview</summary><pre class="json" id="raw"></pre></details>
+</section>
+
+</main>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+let CONFIG = null;
+let ANCHORS = null;
+
+const $ = (id) => document.getElementById(id);
+
+function toast(msg, kind = "good") {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "toast " + kind;
+  t.style.display = "block";
+  setTimeout(() => { t.style.opacity = "0"; }, 3500);
+  setTimeout(() => { t.style.display = "none"; t.style.opacity = "1"; }, 3800);
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { "content-type": "application/json" } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`${r.status}: ${txt}`);
+  }
+  return r.json();
+}
+
+function renderBackend(b, idx) {
+  const div = document.createElement("div");
+  div.className = "backend";
+  div.dataset.idx = idx;
+
+  const head = document.createElement("div");
+  head.className = "backend-head";
+  head.innerHTML = `
+    <input class="b-name" value="${b.name ?? ""}" placeholder="name (e.g. claude)" />
+    <select class="b-kind">
+      <option value="vllm">vllm</option>
+      <option value="gemini_cli">gemini_cli</option>
+      <option value="claude_cli">claude_cli</option>
+    </select>
+    <span class="pull-right">
+      <button class="b-rm danger">remove</button>
+    </span>
+  `;
+  div.appendChild(head);
+  head.querySelector(".b-kind").value = b.kind ?? "vllm";
+  head.querySelector(".b-rm").onclick = () => { div.remove(); };
+
+  const body = document.createElement("div");
+  body.className = "row three";
+  body.innerHTML = `
+    <label><span>endpoint (vllm)</span><input class="b-endpoint" value="${b.endpoint ?? ""}" placeholder="http://localhost:8000/v1" /></label>
+    <label><span>model (vllm)</span><input class="b-model" value="${b.model ?? ""}" placeholder="google/gemma-4-it" /></label>
+    <label><span>binary (cli)</span><input class="b-binary" value="${b.binary ?? ""}" placeholder="claude" /></label>
+    <label><span>extra_args (cli, comma-sep)</span><input class="b-extra" value="${(b.extra_args ?? []).join(",")}" placeholder="--output-format,json" /></label>
+    <label><span>resume_flag (cli)</span><input class="b-resume" value="${b.resume_flag ?? ""}" placeholder="--resume" /></label>
+    <label><span>capabilities (comma-sep)</span><input class="b-caps" value="${(b.capabilities ?? []).join(",")}" placeholder="tools,agentic,long_ctx" /></label>
+    <label><span>cost_in_per_1m USD</span><input class="b-cin" type="number" step="0.01" value="${b.cost_in_per_1m ?? 0}" /></label>
+    <label><span>cost_out_per_1m USD</span><input class="b-cout" type="number" step="0.01" value="${b.cost_out_per_1m ?? 0}" /></label>
+    <label><span>expected_latency_ms_per_1k_out</span><input class="b-lat" type="number" step="1" value="${b.expected_latency_ms_per_1k_out ?? 200}" /></label>
+    <label><span>max_context (tokens)</span><input class="b-ctx" type="number" step="1" value="${b.max_context ?? 8192}" /></label>
+  `;
+  div.appendChild(body);
+  return div;
+}
+
+function readBackendDiv(div) {
+  const get = (sel) => div.querySelector(sel).value.trim();
+  const splitList = (s) => s ? s.split(",").map(x => x.trim()).filter(Boolean) : [];
+  const out = {
+    name: get(".b-name"),
+    kind: get(".b-kind"),
+    endpoint: get(".b-endpoint") || null,
+    model: get(".b-model") || null,
+    binary: get(".b-binary") || null,
+    extra_args: splitList(get(".b-extra")),
+    resume_flag: get(".b-resume") || null,
+    capabilities: splitList(get(".b-caps")),
+    cost_in_per_1m: parseFloat(get(".b-cin")) || 0,
+    cost_out_per_1m: parseFloat(get(".b-cout")) || 0,
+    expected_latency_ms_per_1k_out: parseFloat(get(".b-lat")) || 200,
+    max_context: parseInt(get(".b-ctx")) || 8192,
+  };
+  // Strip nulls so pydantic + yaml stay clean.
+  for (const k of Object.keys(out)) {
+    if (out[k] === null) delete out[k];
+  }
+  return out;
+}
+
+function renderAnchorBlock(label, exemplars) {
+  const wrap = document.createElement("div");
+  wrap.className = "anchor-block";
+  wrap.dataset.label = label;
+  wrap.innerHTML = `
+    <h3>${label} <span style="color:var(--muted);font-weight:normal">(${exemplars.length} exemplars)</span></h3>
+    <textarea>${exemplars.join("\n")}</textarea>
+  `;
+  return wrap;
+}
+
+function renderAll() {
+  // Policy
+  const p = CONFIG.policy ?? {};
+  const w = p.weights ?? {};
+  $("w_quality").value = w.quality ?? 1.0;
+  $("w_cost").value = w.cost ?? 0.4;
+  $("w_latency").value = w.latency ?? 0.3;
+  $("sticky_bonus").value = p.sticky_bonus ?? 0.05;
+  $("confidence_margin").value = p.confidence_margin ?? 0.05;
+  $("fallback_backend").value = p.fallback_backend ?? "gemma4";
+  $("cost_ceiling").value = p.cost_ceiling_usd_per_request ?? 0.10;
+  $("softmax_temp").value = (CONFIG.classifier ?? {}).softmax_temp ?? 0.07;
+
+  // Backends
+  const bs = $("backends"); bs.innerHTML = "";
+  (CONFIG.backends ?? []).forEach((b, i) => bs.appendChild(renderBackend(b, i)));
+
+  // Anchors
+  const a = $("anchors"); a.innerHTML = "";
+  Object.entries(ANCHORS).forEach(([label, exemplars]) => a.appendChild(renderAnchorBlock(label, exemplars)));
+
+  // Logging / sandbox
+  $("log_path").value = (CONFIG.logging ?? {}).path ?? "";
+  $("redact_prompts").value = String(((CONFIG.logging ?? {}).redact_prompts) ?? false);
+  $("sandbox_mode").value = (CONFIG.sandbox ?? {}).mode ?? "tempdir";
+
+  // Raw preview
+  $("raw").textContent = JSON.stringify(buildPayload(), null, 2);
+}
+
+function buildPayload() {
+  const cfg = JSON.parse(JSON.stringify(CONFIG));
+  cfg.policy = cfg.policy ?? {};
+  cfg.policy.weights = {
+    quality: parseFloat($("w_quality").value),
+    cost: parseFloat($("w_cost").value),
+    latency: parseFloat($("w_latency").value),
+  };
+  cfg.policy.sticky_bonus = parseFloat($("sticky_bonus").value);
+  cfg.policy.confidence_margin = parseFloat($("confidence_margin").value);
+  cfg.policy.fallback_backend = $("fallback_backend").value.trim();
+  cfg.policy.cost_ceiling_usd_per_request = parseFloat($("cost_ceiling").value);
+
+  cfg.classifier = cfg.classifier ?? {};
+  cfg.classifier.softmax_temp = parseFloat($("softmax_temp").value);
+
+  cfg.logging = cfg.logging ?? {};
+  cfg.logging.path = $("log_path").value.trim();
+  cfg.logging.redact_prompts = $("redact_prompts").value === "true";
+
+  cfg.sandbox = cfg.sandbox ?? {};
+  cfg.sandbox.mode = $("sandbox_mode").value;
+
+  cfg.backends = Array.from(document.querySelectorAll("#backends .backend")).map(readBackendDiv);
+  return cfg;
+}
+
+function buildAnchorsPayload() {
+  const out = {};
+  document.querySelectorAll("#anchors .anchor-block").forEach(div => {
+    const label = div.dataset.label;
+    const lines = div.querySelector("textarea").value.split("\n").map(l => l.trim()).filter(Boolean);
+    out[label] = lines;
+  });
+  return out;
+}
+
+async function load() {
+  try {
+    const [paths, cfg, anchors] = await Promise.all([
+      api("GET", "/api/paths"),
+      api("GET", "/api/config"),
+      api("GET", "/api/anchors"),
+    ]);
+    $("paths").textContent = `config: ${paths.config_path}   |   anchors: ${paths.anchors_path}`;
+    CONFIG = cfg;
+    ANCHORS = anchors;
+    renderAll();
+  } catch (e) {
+    toast("load failed: " + e.message, "bad");
+  }
+}
+
+async function saveAll() {
+  try {
+    const cfgPayload = buildPayload();
+    const ancPayload = buildAnchorsPayload();
+    const r1 = await api("PUT", "/api/config", { config: cfgPayload });
+    const r2 = await api("PUT", "/api/anchors", { anchors: ancPayload });
+    toast(`saved. config bak=${r1.backup ? "yes" : "no"} anchors bak=${r2.backup ? "yes" : "no"}`);
+    CONFIG = cfgPayload;
+    ANCHORS = ancPayload;
+    renderAll();
+  } catch (e) {
+    toast("save failed: " + e.message, "bad");
+  }
+}
+
+async function rebuild() {
+  toast("rebuilding centroids… (downloads MiniLM on first call)", "good");
+  try {
+    await api("POST", "/api/rebuild-anchors");
+    toast("centroids rebuilt", "good");
+  } catch (e) {
+    toast("rebuild failed: " + e.message, "bad");
+  }
+}
+
+$("btn-reload").onclick = load;
+$("btn-save").onclick = saveAll;
+$("btn-rebuild").onclick = rebuild;
+$("btn-add-backend").onclick = () => {
+  $("backends").appendChild(renderBackend({ name: "", kind: "vllm", capabilities: [] }, 999));
+};
+
+load();
+</script>
+</body>
+</html>
