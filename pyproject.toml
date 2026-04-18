@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gemini-model-router"
+version = "0.1.0"
+description = "Local-first agentic terminal that routes prompts across local Gemma 4, Gemini CLI, and Claude Code."
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "sentence-transformers>=3.0",
+    "numpy>=1.26",
+    "prompt_toolkit>=3.0",
+    "halo>=0.0.31",
+    "ulid-py>=1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+router = "router.cli:main"
+router-repl = "router.repl:main"
+router-eval = "router.eval.review:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

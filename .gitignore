@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.npy
+
+# router runtime artifacts
+~/.router/
+
+# local tooling state (not part of the repo)
+.claude/
+.playwright-mcp/
