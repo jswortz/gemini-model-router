@@ -26,12 +26,28 @@ class PolicyWeights(BaseModel):
     latency: float = 0.3
 
 
+class CapabilityBonuses(BaseModel):
+    """Tunable per-capability score adjustments applied in policy.scorer.
+
+    These previously lived as hardcoded constants in `_capability_bonus`. Lifted
+    to config so weight tuning can actually move the router (the experiment
+    showed weight changes were dominated by the +0.5 local-short bonus).
+    """
+    local_short: float = 0.5         # backend has "local" cap, prompt is short, no fences, not tool-required
+    agentic_tool: float = 0.4        # backend has "agentic" cap and prompt is tool_required
+    long_ctx: float = 0.3            # backend has "long_ctx" cap and prompt > 8k tokens
+    tools_url: float = 0.1           # backend has "tools" cap and prompt has a URL
+    local_short_token_threshold: int = 200  # boundary for the local_short bonus
+    long_ctx_token_threshold: int = 8000
+
+
 class PolicyCfg(BaseModel):
     weights: PolicyWeights = Field(default_factory=PolicyWeights)
     confidence_margin: float = 0.05
     fallback_backend: str = "gemma4"
     cost_ceiling_usd_per_request: float = 0.10
     sticky_bonus: float = 0.05
+    capability_bonuses: CapabilityBonuses = Field(default_factory=CapabilityBonuses)
 
 
 class LoggingCfg(BaseModel):

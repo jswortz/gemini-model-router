@@ -26,18 +26,19 @@ def _normalized_latency(b: BackendCfg, expected_out: int) -> float:
     return min(ms / 3000.0, 1.0)
 
 
-def _capability_bonus(b: BackendCfg, f: PromptFeatures) -> float:
+def _capability_bonus(b: BackendCfg, f: PromptFeatures, policy: PolicyCfg) -> float:
     bonus = 0.0
     caps = set(b.capabilities)
-    # gemma4-style local bonus: short, no code, NOT a tool-using agent task
-    if "local" in caps and f.n_tokens_est < 200 and f.code_fence_count == 0 and not f.tool_required:
-        bonus += 0.5
+    cb = policy.capability_bonuses
+    if "local" in caps and f.n_tokens_est < cb.local_short_token_threshold \
+            and f.code_fence_count == 0 and not f.tool_required:
+        bonus += cb.local_short
     if "agentic" in caps and f.tool_required:
-        bonus += 0.4
-    if "long_ctx" in caps and f.n_tokens_est > 8000:
-        bonus += 0.3
+        bonus += cb.agentic_tool
+    if "long_ctx" in caps and f.n_tokens_est > cb.long_ctx_token_threshold:
+        bonus += cb.long_ctx
     if f.has_url and "tools" in caps:
-        bonus += 0.1
+        bonus += cb.tools_url
     return bonus
 
 
@@ -60,7 +61,7 @@ def score(
             policy.weights.quality * quality_fit.get(name, 0.0)
             - policy.weights.cost * _normalized_cost(b, features.n_tokens_est, expected_out)
             - policy.weights.latency * _normalized_latency(b, expected_out)
-            + _capability_bonus(b, features)
+            + _capability_bonus(b, features, policy)
         )
         if sticky_backend == name:
             s += policy.sticky_bonus

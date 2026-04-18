@@ -1,4 +1,4 @@
-from router.config_loader import BackendCfg, PolicyCfg, PolicyWeights
+from router.config_loader import BackendCfg, CapabilityBonuses, PolicyCfg, PolicyWeights
 from router.features.extractor import extract
 from router.policy import rules, scorer
 
@@ -71,6 +71,28 @@ def test_agentic_bonus_pushes_tool_required_to_claude():
         candidate_set=["gemma4", "gemini", "claude"],
     )
     assert d.chosen == "claude"
+
+
+def test_capability_bonuses_are_config_driven():
+    """Setting all capability bonuses to 0 must let weight terms drive the choice."""
+    backends = _backends()
+    f = extract("what is REST")  # short, would normally get +0.5 to gemma4
+    quality = {"gemma4": 0.34, "gemini": 0.33, "claude": 0.33}
+    no_bonus_policy = PolicyCfg(
+        weights=PolicyWeights(quality=1.0, cost=0.4, latency=0.3),
+        confidence_margin=0.0,  # disable tie-break to isolate the bonus effect
+        capability_bonuses=CapabilityBonuses(
+            local_short=0.0, agentic_tool=0.0, long_ctx=0.0, tools_url=0.0,
+        ),
+    )
+    d = scorer.score(
+        f, quality, backends, no_bonus_policy,
+        candidate_set=["gemma4", "gemini", "claude"],
+    )
+    # With bonuses zeroed, gemma4 still wins on short prompt (cheapest+local)
+    # but the score should reflect *only* weight*qfit - cost - latency, not +0.5.
+    # Verify by checking the gemma4 score is below 0.5 (would be ~0.84 with bonus).
+    assert d.scores["gemma4"] < 0.5, f"expected pure-weight gemma4 score, got {d.scores}"
 
 
 def test_tie_break_falls_back_when_within_margin():

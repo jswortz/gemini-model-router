@@ -14,3 +14,13 @@ __pycache__/
 # local tooling state (not part of the repo)
 .claude/
 .playwright-mcp/
+
+# paperbanana is an external tool checked out for figure generation; not part of this repo
+paperbanana/
+
+# tuning artifacts (datasets and adapters are large; train them, don't commit them)
+tuning/datasets/
+tuning/adapters/
+
+# raw BQ dump may contain user PII — keep out of public commits unless reviewed
+experiments/raw_logs.json

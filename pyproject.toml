@@ -27,6 +27,15 @@ configsite = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
 ]
+tuning = [
+    "transformers>=4.46",
+    "peft>=0.13",
+    "trl>=0.12",
+    "bitsandbytes>=0.44",
+    "accelerate>=1.0",
+    "datasets>=3.0",
+    "torch>=2.4",
+]
 
 [project.scripts]
 router = "router.cli:main"

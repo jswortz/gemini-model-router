@@ -1,16 +1,13 @@
 version: 1
-
 sandbox:
-  mode: tempdir          # tempdir | docker
+  mode: tempdir
   copy_cwd: false
-
 classifier:
-  type: embed_anchors    # embed_anchors | mmbert (Phase-2)
+  type: embed_anchors
   model: sentence-transformers/all-MiniLM-L6-v2
   anchors_file: config/anchors.yaml
   cache_dir: ~/.router/cache
   softmax_temp: 0.07
-
 policy:
   weights:
     quality: 1.0
@@ -18,41 +15,60 @@ policy:
     latency: 0.3
   confidence_margin: 0.05
   fallback_backend: gemma4
-  cost_ceiling_usd_per_request: 0.10
+  cost_ceiling_usd_per_request: 0.1
   sticky_bonus: 0.05
-
+  # Capability bonuses are heuristic adjustments applied in scorer.py.
+  # Lifted out of code (formerly hardcoded) so that weight tuning can actually
+  # change router behavior — see experiments/REPORT.md Finding 1.
+  capability_bonuses:
+    local_short: 0.5
+    agentic_tool: 0.4
+    long_ctx: 0.3
+    tools_url: 0.1
+    local_short_token_threshold: 200
+    long_ctx_token_threshold: 8000
 logging:
   path: ~/.router/sessions/router_history.jsonl
   redact_prompts: false
-
 backends:
-  - name: gemma4
-    kind: vllm
-    endpoint: http://localhost:8000/v1
-    model: google/gemma-4-it
-    capabilities: [stream, local]
-    cost_in_per_1m: 0.0
-    cost_out_per_1m: 0.0
-    expected_latency_ms_per_1k_out: 80
-    max_context: 8192
-
-  - name: gemini
-    kind: gemini_cli
-    binary: gemini
-    extra_args: ["--output-format", "json"]
-    capabilities: [tools, long_ctx]
-    cost_in_per_1m: 0.30
-    cost_out_per_1m: 2.50
-    expected_latency_ms_per_1k_out: 350
-    max_context: 1000000
-
-  - name: claude
-    kind: claude_cli
-    binary: claude
-    extra_args: ["--output-format", "json", "--bare"]
-    capabilities: [tools, agentic, long_ctx]
-    cost_in_per_1m: 3.00
-    cost_out_per_1m: 15.00
-    expected_latency_ms_per_1k_out: 600
-    max_context: 200000
-    resume_flag: "--resume"
+- name: gemma4
+  kind: vllm
+  capabilities:
+  - stream
+  - local
+  cost_in_per_1m: 0.0
+  cost_out_per_1m: 0.0
+  expected_latency_ms_per_1k_out: 80.0
+  max_context: 8192
+  endpoint: http://localhost:8000/v1
+  model: google/gemma-4-it
+  extra_args: []
+- name: gemini
+  kind: gemini_cli
+  capabilities:
+  - tools
+  - long_ctx
+  cost_in_per_1m: 0.3
+  cost_out_per_1m: 2.5
+  expected_latency_ms_per_1k_out: 350.0
+  max_context: 1000000
+  binary: gemini
+  extra_args:
+  - --output-format
+  - json
+- name: claude
+  kind: claude_cli
+  capabilities:
+  - tools
+  - agentic
+  - long_ctx
+  cost_in_per_1m: 3.0
+  cost_out_per_1m: 15.0
+  expected_latency_ms_per_1k_out: 600.0
+  max_context: 200000
+  binary: claude
+  extra_args:
+  - --output-format
+  - json
+  - --bare
+  resume_flag: --resume

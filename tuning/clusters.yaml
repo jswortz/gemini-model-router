@@ -1,0 +1,21 @@
+version: 1
+clusters:
+  cloudrun:
+    description: Cloud Run deployment, region, scaling, and gcloud-run questions.
+    bq_source: wortz-project-352116.gemini_dreams.dream_raw_logs
+    teacher_priority: [claude, gemini, gemma4]
+    match:
+      mode: like
+      case_sensitive: false
+      patterns:
+        - "%cloud run%"
+        - "%gcloud run%"
+    synth_seed_prompts:
+      - "How do I deploy a python service to cloud run?"
+      - "What region should I pick for cloud run in europe?"
+      - "Give me the gcloud run deploy command with min-instances=1."
+      - "How do I set memory and cpu for a cloud run service?"
+      - "How do I roll back a cloud run revision?"
+      - "How do I stream logs from cloud run?"
+      - "How do I bind a custom domain to cloud run?"
+      - "What's the difference between cloud run jobs and services?"
