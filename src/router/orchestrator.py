@@ -32,15 +32,24 @@ class RouteResult:
 
 class Orchestrator:
     def __init__(self, config: RouterConfig):
-        # Imported lazily so callers that inject their own classifier (tests,
-        # offline shims) don't pay the numpy / sentence-transformers cost.
-        from router.classifier.embed_anchors import EmbedAnchorsClassifier
-
         self.cfg = config
-        self.classifier = EmbedAnchorsClassifier(config.classifier)
+        self._classifier = None
         self.backends: dict[str, Backend] = build_backends(config.backends)
         self.logger = JsonlWriter(config.logging)
         self.sessions = SessionStore()
+
+    @property
+    def classifier(self):
+        # Built on first use so --force / override paths don't pay the
+        # numpy + sentence-transformers cost.
+        if self._classifier is None:
+            from router.classifier.embed_anchors import EmbedAnchorsClassifier
+            self._classifier = EmbedAnchorsClassifier(self.cfg.classifier)
+        return self._classifier
+
+    @classifier.setter
+    def classifier(self, value) -> None:
+        self._classifier = value
 
     async def _health_snapshot(self, candidates: list[str]) -> dict[str, bool]:
         names = [n for n in candidates if n in self.backends]
