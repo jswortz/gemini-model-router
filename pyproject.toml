@@ -23,11 +23,16 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
 ]
+configsite = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+]
 
 [project.scripts]
 router = "router.cli:main"
 router-repl = "router.repl:main"
 router-eval = "router.eval.review:main"
+router-config = "router.configsite.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
