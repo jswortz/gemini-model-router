@@ -14,7 +14,7 @@ from router.config_loader import RouterConfig
 from router.features.extractor import extract
 from router.logging.jsonl_writer import JsonlWriter
 from router.policy import rules, scorer
-from router.sandbox.workspace import ephemeral_workspace
+from router.sandbox.workspace import workspace_for
 from router.session import SessionStore
 
 
@@ -148,7 +148,7 @@ class Orchestrator:
             stream_to = lambda chunk: (sys.stdout.write(chunk), sys.stdout.flush())  # noqa: E731
 
         vendor_sid = state.vendor_session_for(chosen_name)
-        with ephemeral_workspace(copy_cwd=self.cfg.sandbox.copy_cwd) as ws:
+        with workspace_for(self.cfg.sandbox) as ws:
             resp = await backend.invoke(
                 prompt, ws, stream_to=stream_to, vendor_session_id=vendor_sid
             )

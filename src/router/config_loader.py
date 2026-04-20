@@ -8,7 +8,18 @@ from pydantic import BaseModel, Field
 
 
 class SandboxCfg(BaseModel):
-    mode: Literal["tempdir", "docker"] = "tempdir"
+    """Where backend sub-CLIs see the filesystem.
+
+    - `tempdir` (default): per-request ephemeral dir, optionally seeded by
+      copying CWD when `copy_cwd: true`. Safest; sandbox writes never touch
+      the user's repo.
+    - `cwd`: pass-through. Backends run in `$PWD` and can read/write the
+      user's actual files. Use when you want gemini/claude to see the repo
+      you're standing in. `copy_cwd` is ignored in this mode.
+    - `docker`: phase-2 stub.
+    """
+
+    mode: Literal["tempdir", "cwd", "docker"] = "tempdir"
     copy_cwd: bool = False
 
 

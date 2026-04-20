@@ -14,6 +14,12 @@ __pycache__/
 # router runtime artifacts
 ~/.router/
 
+# config backups produced by `router config set` / web UI
+config/*.bak-*
+
+# uv lockfile — environments are reproduced from pyproject.toml
+uv.lock
+
 # local tooling state (not part of the repo)
 .claude/
 .playwright-mcp/

@@ -6,6 +6,8 @@ optimize cost, latency, and quality. Logs every decision in a format the
 [gemini-dreams](https://github.com/jswortz/gemini-dreams) nightly loop can mine
 to propose its own improvements.
 
+[![asciicast](https://asciinema.org/a/P3pkHoXam0N1MJKM.svg)](https://asciinema.org/a/P3pkHoXam0N1MJKM)
+
 ## Install
 
 Recommended — install as a uv tool so the scripts land on `PATH` and work
@@ -175,13 +177,26 @@ move-to claude: "trace through this stack trace and find the root cause"
 
 ## Sandboxing
 
-Each backend invocation runs in a fresh `tempfile.mkdtemp("router-ws-")` with a
-scrubbed environment (only `PATH`, `HOME`, `LANG`, and the per-backend auth env
-vars are forwarded). This adopts the *pattern* from
-[GoogleCloudPlatform/scion](https://github.com/GoogleCloudPlatform/scion) — a
-multi-agent sandbox harness — without taking the dependency. The
-`DockerWorkspace` class in `sandbox/workspace.py` is a Phase-2 stub for true
-container isolation.
+Three modes for where backend sub-CLIs see the filesystem, set via
+`sandbox.mode` in `router.yaml`:
+
+| Mode | Behavior | Use when |
+| --- | --- | --- |
+| `tempdir` *(default)* | Per-request `tempfile.mkdtemp("router-ws-")`; auto-cleaned. Pair with `copy_cwd: true` to seed it from your current repo. | You want sandbox writes to never touch your real files. |
+| `cwd` | Pass-through. Backends run in `$PWD` and can read/write your actual repo. `copy_cwd` is ignored. | You want `gemini`/`claude` to answer "what's in this repo?" against your real working tree. |
+| `docker` | Phase-2 stub — raises `NotImplementedError`. Reserved for scion-style containerized isolation. | Not yet. |
+
+Switch modes from the CLI:
+
+```bash
+router config set sandbox.mode cwd       # let backends see your real repo
+router config set sandbox.mode tempdir   # back to safe ephemeral default
+```
+
+In every mode the subprocess gets a scrubbed environment (only `PATH`, `HOME`,
+`LANG`, and the per-backend auth env vars are forwarded). The pattern is
+adapted from [GoogleCloudPlatform/scion](https://github.com/GoogleCloudPlatform/scion) —
+a multi-agent sandbox harness — without taking the dependency.
 
 ## Phase-2 migration path
 

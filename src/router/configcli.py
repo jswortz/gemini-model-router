@@ -241,6 +241,8 @@ def build_config_parser() -> argparse.ArgumentParser:
     )
     p_anc_rm.set_defaults(func=cmd_anchor_remove)
 
+    return cfg_p
+
 
 def dispatch(args: argparse.Namespace) -> int:
     from router.orchestrator import find_default_config

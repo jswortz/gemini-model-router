@@ -4,7 +4,7 @@ import os
 import shutil
 import tempfile
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from pathlib import Path
 
 # Auth env vars we forward into the subprocess (everything else is dropped).
@@ -57,6 +57,32 @@ def ephemeral_workspace(
         yield d
     finally:
         shutil.rmtree(d, ignore_errors=True)
+
+
+@contextmanager
+def cwd_workspace() -> Iterator[Path]:
+    """Pass-through workspace: backend sub-CLIs run in the user's actual CWD.
+
+    No copy, no cleanup. Anything the backend writes lands in the user's
+    real filesystem — that's the whole point (questions like "what's in my
+    current repo?" need this), but it means the user is responsible for
+    `git status`-level review afterwards.
+    """
+    yield Path.cwd().resolve()
+
+
+def workspace_for(cfg) -> AbstractContextManager[Path]:
+    """Pick the right workspace context manager for a `SandboxCfg`.
+
+    `cfg` is `router.config_loader.SandboxCfg` — typed loosely to avoid an
+    import cycle between sandbox/ and config_loader.
+    """
+    mode = getattr(cfg, "mode", "tempdir")
+    if mode == "cwd":
+        return cwd_workspace()
+    if mode == "docker":
+        return DockerWorkspace()  # raises NotImplementedError on __enter__
+    return ephemeral_workspace(copy_cwd=getattr(cfg, "copy_cwd", False))
 
 
 class DockerWorkspace:
