@@ -31,9 +31,7 @@ def _ensure_db() -> sqlite3.Connection | None:
 def cmd_list(args: argparse.Namespace) -> int:
     conn = _ensure_db()
     if conn is None:
-        sys.stderr.write(
-            f"no dream_metrics.db at {_db_path()} — run `dream run` first.\n"
-        )
+        sys.stderr.write(f"no dream_metrics.db at {_db_path()} — run `dream run` first.\n")
         return 1
     try:
         cur = conn.execute(
@@ -88,9 +86,7 @@ def cmd_approve(args: argparse.Namespace) -> int:
     if conn is None:
         sys.stderr.write("no dream_metrics.db.\n")
         return 1
-    cur = conn.execute(
-        f"SELECT skill_updates FROM {SCHEMA_TABLE} WHERE id = ?", (int(args.id),)
-    )
+    cur = conn.execute(f"SELECT skill_updates FROM {SCHEMA_TABLE} WHERE id = ?", (int(args.id),))
     row = cur.fetchone()
     if not row:
         sys.stderr.write(f"no proposal {args.id}\n")
@@ -110,22 +106,18 @@ def cmd_approve(args: argparse.Namespace) -> int:
             head, exemplar = line.split(":", 1)
         except ValueError:
             continue
-        backend = head[len("move-to "):].strip()
+        backend = head[len("move-to ") :].strip()
         exemplar = exemplar.strip().strip('"').strip("'")
         if backend in anchors and exemplar and exemplar not in anchors[backend]:
             anchors[backend].append(exemplar)
             added.append((backend, exemplar))
 
     if not added:
-        sys.stdout.write(
-            "no `move-to <backend>: \"<prompt>\"` directives found in proposal.\n"
-        )
+        sys.stdout.write('no `move-to <backend>: "<prompt>"` directives found in proposal.\n')
         return 0
 
     _save_anchors_yaml(anchors_path, anchors)
-    conn.execute(
-        f"UPDATE {SCHEMA_TABLE} SET status = 'Approved' WHERE id = ?", (int(args.id),)
-    )
+    conn.execute(f"UPDATE {SCHEMA_TABLE} SET status = 'Approved' WHERE id = ?", (int(args.id),))
     conn.commit()
     for backend, exemplar in added:
         sys.stdout.write(f"+ {backend}: {exemplar}\n")
@@ -145,8 +137,12 @@ def main() -> None:
     p = argparse.ArgumentParser(prog="router-eval")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list").set_defaults(func=cmd_list)
-    sp = sub.add_parser("show"); sp.add_argument("id"); sp.set_defaults(func=cmd_show)
-    sp = sub.add_parser("approve"); sp.add_argument("id"); sp.set_defaults(func=cmd_approve)
+    sp = sub.add_parser("show")
+    sp.add_argument("id")
+    sp.set_defaults(func=cmd_show)
+    sp = sub.add_parser("approve")
+    sp.add_argument("id")
+    sp.set_defaults(func=cmd_approve)
     sub.add_parser("rebuild-anchors").set_defaults(func=cmd_rebuild)
     args = p.parse_args()
     sys.exit(args.func(args))

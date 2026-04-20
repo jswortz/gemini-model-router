@@ -30,8 +30,12 @@ def _capability_bonus(b: BackendCfg, f: PromptFeatures, policy: PolicyCfg) -> fl
     bonus = 0.0
     caps = set(b.capabilities)
     cb = policy.capability_bonuses
-    if "local" in caps and f.n_tokens_est < cb.local_short_token_threshold \
-            and f.code_fence_count == 0 and not f.tool_required:
+    if (
+        "local" in caps
+        and f.n_tokens_est < cb.local_short_token_threshold
+        and f.code_fence_count == 0
+        and not f.tool_required
+    ):
         bonus += cb.local_short
     if "agentic" in caps and f.tool_required:
         bonus += cb.agentic_tool
@@ -74,11 +78,12 @@ def score(
 
     if len(ranked) >= 2:
         runner_up_score = ranked[1][1]
-        if (top_score - runner_up_score) < policy.confidence_margin:
-            if policy.fallback_backend in raw:
-                top = policy.fallback_backend
-                top_score = raw[policy.fallback_backend]
-                fallback_used = True
+        if (
+            top_score - runner_up_score
+        ) < policy.confidence_margin and policy.fallback_backend in raw:
+            top = policy.fallback_backend
+            top_score = raw[policy.fallback_backend]
+            fallback_used = True
 
     confidence = top_score
     return Decision(

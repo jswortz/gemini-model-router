@@ -29,6 +29,7 @@ class EmbedAnchorsClassifier:
     def _lazy_model(self):
         if self._model is None:
             from sentence_transformers import SentenceTransformer
+
             self._model = SentenceTransformer(self.cfg.model)
         return self._model
 
@@ -79,8 +80,10 @@ class EmbedAnchorsClassifier:
 
     def classify(self, prompt: str) -> dict[str, float]:
         assert self._centroids is not None
-        emb = self._lazy_model().encode([prompt], normalize_embeddings=True, show_progress_bar=False)
+        emb = self._lazy_model().encode(
+            [prompt], normalize_embeddings=True, show_progress_bar=False
+        )
         emb = np.asarray(emb[0], dtype=np.float32)
         sims = self._centroids @ emb  # cosine since both normalized
         probs = _softmax(sims, self.cfg.softmax_temp)
-        return {label: float(p) for label, p in zip(self._labels, probs)}
+        return {label: float(p) for label, p in zip(self._labels, probs, strict=True)}

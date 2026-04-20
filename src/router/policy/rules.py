@@ -8,9 +8,9 @@ from router.features.extractor import PromptFeatures
 
 @dataclass
 class HardOverride:
-    chosen: str | None              # if set, dispatch directly
-    reason: str | None              # human-readable label for logs
-    candidate_set: list[str]        # backends still in the running
+    chosen: str | None  # if set, dispatch directly
+    reason: str | None  # human-readable label for logs
+    candidate_set: list[str]  # backends still in the running
 
 
 def _estimate_cost(b: BackendCfg, n_in: int, expected_out: int) -> float:

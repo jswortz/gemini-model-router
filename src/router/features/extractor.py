@@ -4,13 +4,31 @@ import re
 from dataclasses import asdict, dataclass
 
 _AGENT_KEYWORDS = (
-    "refactor", "fix", "run tests", "grep", "commit", "debug",
-    "implement", "write a", "migrate", "trace through", "audit",
-    "instrument", "extract", "split this",
+    "refactor",
+    "fix",
+    "run tests",
+    "grep",
+    "commit",
+    "debug",
+    "implement",
+    "write a",
+    "migrate",
+    "trace through",
+    "audit",
+    "instrument",
+    "extract",
+    "split this",
 )
 _QA_KEYWORDS = (
-    "what is", "explain", "summarize", "why does", "translate",
-    "convert", "define", "give me", "list",
+    "what is",
+    "explain",
+    "summarize",
+    "why does",
+    "translate",
+    "convert",
+    "define",
+    "give me",
+    "list",
 )
 
 _PATH_RE = re.compile(
@@ -20,12 +38,12 @@ _URL_RE = re.compile(r"https?://\S+")
 _FENCE_RE = re.compile(r"```[\s\S]*?```", re.MULTILINE)
 
 _SECRET_RES = (
-    re.compile(r"AKIA[0-9A-Z]{16}"),                 # AWS access key id
+    re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key id
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----"),
-    re.compile(r"sk-[A-Za-z0-9]{20,}"),              # OpenAI-style secret
-    re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),     # Slack token
-    re.compile(r"ghp_[A-Za-z0-9]{30,}"),             # GitHub PAT
-    re.compile(r"AIza[0-9A-Za-z_-]{35}"),            # Google API key
+    re.compile(r"sk-[A-Za-z0-9]{20,}"),  # OpenAI-style secret
+    re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),  # Slack token
+    re.compile(r"ghp_[A-Za-z0-9]{30,}"),  # GitHub PAT
+    re.compile(r"AIza[0-9A-Za-z_-]{35}"),  # Google API key
 )
 
 

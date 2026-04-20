@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
-
-import pytest
 
 from router.backends.base import BackendResponse, Usage
 from router.config_loader import (
@@ -15,7 +12,6 @@ from router.config_loader import (
 )
 from router.orchestrator import Orchestrator
 from router.session import SessionState, SessionStore
-
 
 # ---------- SessionState / SessionStore ----------
 
@@ -68,23 +64,36 @@ def test_session_store_unlock_returns_false_when_no_lock():
 def _backend_cfgs() -> list[BackendCfg]:
     return [
         BackendCfg(
-            name="gemma4", kind="vllm", endpoint="http://x", model="m",
+            name="gemma4",
+            kind="vllm",
+            endpoint="http://x",
+            model="m",
             capabilities=["stream", "local"],
-            cost_in_per_1m=0.0, cost_out_per_1m=0.0,
-            expected_latency_ms_per_1k_out=80, max_context=8192,
+            cost_in_per_1m=0.0,
+            cost_out_per_1m=0.0,
+            expected_latency_ms_per_1k_out=80,
+            max_context=8192,
         ),
         BackendCfg(
-            name="gemini", kind="gemini_cli", binary="gemini",
+            name="gemini",
+            kind="gemini_cli",
+            binary="gemini",
             capabilities=["tools", "long_ctx"],
-            cost_in_per_1m=0.30, cost_out_per_1m=2.50,
-            expected_latency_ms_per_1k_out=350, max_context=1_000_000,
+            cost_in_per_1m=0.30,
+            cost_out_per_1m=2.50,
+            expected_latency_ms_per_1k_out=350,
+            max_context=1_000_000,
         ),
         BackendCfg(
-            name="claude", kind="claude_cli", binary="claude",
+            name="claude",
+            kind="claude_cli",
+            binary="claude",
             resume_flag="--resume",
             capabilities=["tools", "agentic", "long_ctx"],
-            cost_in_per_1m=3.0, cost_out_per_1m=15.0,
-            expected_latency_ms_per_1k_out=600, max_context=200_000,
+            cost_in_per_1m=3.0,
+            cost_out_per_1m=15.0,
+            expected_latency_ms_per_1k_out=600,
+            max_context=200_000,
         ),
     ]
 
@@ -128,7 +137,9 @@ class FakeLogger:
         self.records.append(kw)
 
 
-def _make_orch(quality: dict[str, float]) -> tuple[Orchestrator, dict[str, FakeBackend], FakeClassifier, FakeLogger]:
+def _make_orch(
+    quality: dict[str, float],
+) -> tuple[Orchestrator, dict[str, FakeBackend], FakeClassifier, FakeLogger]:
     cfg = RouterConfig(
         sandbox=SandboxCfg(),
         policy=PolicyCfg(),
@@ -203,9 +214,7 @@ def test_no_affinity_flag_re_classifies_each_turn():
 
 
 def test_unlock_releases_session_lock():
-    orch, _, classifier, _ = _make_orch(
-        quality={"gemma4": 0.1, "gemini": 0.2, "claude": 0.7}
-    )
+    orch, _, classifier, _ = _make_orch(quality={"gemma4": 0.1, "gemini": 0.2, "claude": 0.7})
     _run(orch.route("first", session_id="s1", stream=False))
     assert orch.sessions.get("s1").locked_backend == "claude"
 
@@ -237,7 +246,9 @@ def test_claude_backend_passes_resume_flag(tmp_path):
     from router.backends.claude_cli import ClaudeCLIBackend
 
     cfg = BackendCfg(
-        name="claude", kind="claude_cli", binary="claude",
+        name="claude",
+        kind="claude_cli",
+        binary="claude",
         resume_flag="--resume",
         extra_args=["--output-format", "json"],
         capabilities=["tools"],

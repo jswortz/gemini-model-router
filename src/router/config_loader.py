@@ -33,10 +33,13 @@ class CapabilityBonuses(BaseModel):
     to config so weight tuning can actually move the router (the experiment
     showed weight changes were dominated by the +0.5 local-short bonus).
     """
-    local_short: float = 0.5         # backend has "local" cap, prompt is short, no fences, not tool-required
-    agentic_tool: float = 0.4        # backend has "agentic" cap and prompt is tool_required
-    long_ctx: float = 0.3            # backend has "long_ctx" cap and prompt > 8k tokens
-    tools_url: float = 0.1           # backend has "tools" cap and prompt has a URL
+
+    local_short: float = (
+        0.5  # backend has "local" cap, prompt is short, no fences, not tool-required
+    )
+    agentic_tool: float = 0.4  # backend has "agentic" cap and prompt is tool_required
+    long_ctx: float = 0.3  # backend has "long_ctx" cap and prompt > 8k tokens
+    tools_url: float = 0.1  # backend has "tools" cap and prompt has a URL
     local_short_token_threshold: int = 200  # boundary for the local_short bonus
     long_ctx_token_threshold: int = 8000
 
@@ -87,8 +90,25 @@ class RouterConfig(BaseModel):
 
 
 def load_config(path: str | Path) -> RouterConfig:
-    raw = yaml.safe_load(Path(path).read_text())
-    return RouterConfig.model_validate(raw)
+    cfg_path = Path(path).expanduser().resolve()
+    raw = yaml.safe_load(cfg_path.read_text())
+    cfg = RouterConfig.model_validate(raw)
+    # Resolve a relative `anchors_file` against the config dir (and its parent,
+    # for the historical `config/anchors.yaml` layout) so the router works
+    # regardless of the cwd it was launched from.
+    cfg.classifier.anchors_file = str(_resolve_relative(cfg.classifier.anchors_file, cfg_path))
+    return cfg
+
+
+def _resolve_relative(p: str, cfg_path: Path) -> Path:
+    candidate = Path(p).expanduser()
+    if candidate.is_absolute():
+        return candidate
+    for base in (cfg_path.parent, cfg_path.parent.parent):
+        resolved = (base / candidate).resolve()
+        if resolved.exists():
+            return resolved
+    return candidate.resolve()
 
 
 def load_anchors(path: str | Path) -> dict[str, list[str]]:

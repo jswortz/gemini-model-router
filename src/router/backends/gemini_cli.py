@@ -4,8 +4,8 @@ import asyncio
 import json
 import shutil
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from router.backends.base import Backend, BackendResponse, Usage, compute_cost
 from router.config_loader import BackendCfg
@@ -84,12 +84,7 @@ class GeminiCLIBackend(Backend):
                 success=True,
             )
 
-        text = (
-            data.get("response")
-            or data.get("text")
-            or data.get("output")
-            or ""
-        )
+        text = data.get("response") or data.get("text") or data.get("output") or ""
         # Gemini CLI puts metrics under `stats.tokens` or `usage_metadata` depending on version.
         in_tok, out_tok = 0, 0
         stats = data.get("stats", {}) or {}

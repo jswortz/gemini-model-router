@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 
 from router.config_loader import LoggingCfg, expand
 
 
 def _iso_now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z"
+    return (
+        datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.")
+        + f"{datetime.now(UTC).microsecond // 1000:03d}Z"
+    )
 
 
 def _redact(s: str) -> str:

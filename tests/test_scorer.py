@@ -6,22 +6,35 @@ from router.policy import rules, scorer
 def _backends():
     return [
         BackendCfg(
-            name="gemma4", kind="vllm", endpoint="http://x", model="m",
+            name="gemma4",
+            kind="vllm",
+            endpoint="http://x",
+            model="m",
             capabilities=["stream", "local"],
-            cost_in_per_1m=0.0, cost_out_per_1m=0.0,
-            expected_latency_ms_per_1k_out=80, max_context=8192,
+            cost_in_per_1m=0.0,
+            cost_out_per_1m=0.0,
+            expected_latency_ms_per_1k_out=80,
+            max_context=8192,
         ),
         BackendCfg(
-            name="gemini", kind="gemini_cli", binary="gemini",
+            name="gemini",
+            kind="gemini_cli",
+            binary="gemini",
             capabilities=["tools", "long_ctx"],
-            cost_in_per_1m=0.30, cost_out_per_1m=2.50,
-            expected_latency_ms_per_1k_out=350, max_context=1_000_000,
+            cost_in_per_1m=0.30,
+            cost_out_per_1m=2.50,
+            expected_latency_ms_per_1k_out=350,
+            max_context=1_000_000,
         ),
         BackendCfg(
-            name="claude", kind="claude_cli", binary="claude",
+            name="claude",
+            kind="claude_cli",
+            binary="claude",
             capabilities=["tools", "agentic", "long_ctx"],
-            cost_in_per_1m=3.0, cost_out_per_1m=15.0,
-            expected_latency_ms_per_1k_out=600, max_context=200_000,
+            cost_in_per_1m=3.0,
+            cost_out_per_1m=15.0,
+            expected_latency_ms_per_1k_out=600,
+            max_context=200_000,
         ),
     ]
 
@@ -43,7 +56,9 @@ def test_sensitive_prompt_forced_local():
 def test_unhealthy_vllm_drops_gemma_from_candidates():
     f = extract("explain RAG briefly")
     o = rules.apply(
-        f, _backends(), PolicyCfg(),
+        f,
+        _backends(),
+        PolicyCfg(),
         healthy={"gemma4": False, "gemini": True, "claude": True},
     )
     assert "gemma4" not in o.candidate_set
@@ -55,7 +70,10 @@ def test_local_bonus_pushes_short_qa_to_gemma():
     f = extract("what is REST")
     quality = {"gemma4": 0.34, "gemini": 0.33, "claude": 0.33}
     d = scorer.score(
-        f, quality, backends, PolicyCfg(),
+        f,
+        quality,
+        backends,
+        PolicyCfg(),
         candidate_set=["gemma4", "gemini", "claude"],
     )
     assert d.chosen == "gemma4"
@@ -67,7 +85,10 @@ def test_agentic_bonus_pushes_tool_required_to_claude():
     # Quality vector intentionally indistinct so the capability_bonus must drive the choice.
     quality = {"gemma4": 0.33, "gemini": 0.33, "claude": 0.34}
     d = scorer.score(
-        f, quality, backends, PolicyCfg(),
+        f,
+        quality,
+        backends,
+        PolicyCfg(),
         candidate_set=["gemma4", "gemini", "claude"],
     )
     assert d.chosen == "claude"
@@ -82,11 +103,17 @@ def test_capability_bonuses_are_config_driven():
         weights=PolicyWeights(quality=1.0, cost=0.4, latency=0.3),
         confidence_margin=0.0,  # disable tie-break to isolate the bonus effect
         capability_bonuses=CapabilityBonuses(
-            local_short=0.0, agentic_tool=0.0, long_ctx=0.0, tools_url=0.0,
+            local_short=0.0,
+            agentic_tool=0.0,
+            long_ctx=0.0,
+            tools_url=0.0,
         ),
     )
     d = scorer.score(
-        f, quality, backends, no_bonus_policy,
+        f,
+        quality,
+        backends,
+        no_bonus_policy,
         candidate_set=["gemma4", "gemini", "claude"],
     )
     # With bonuses zeroed, gemma4 still wins on short prompt (cheapest+local)
@@ -100,9 +127,14 @@ def test_tie_break_falls_back_when_within_margin():
     f = extract("ambiguous prompt here")
     quality = {"gemma4": 0.34, "gemini": 0.34, "claude": 0.34}
     d = scorer.score(
-        f, quality, backends,
-        PolicyCfg(weights=PolicyWeights(quality=1.0, cost=0.0, latency=0.0),
-                  confidence_margin=0.5, fallback_backend="gemma4"),
+        f,
+        quality,
+        backends,
+        PolicyCfg(
+            weights=PolicyWeights(quality=1.0, cost=0.0, latency=0.0),
+            confidence_margin=0.5,
+            fallback_backend="gemma4",
+        ),
         candidate_set=["gemma4", "gemini", "claude"],
     )
     assert d.fallback_used is True

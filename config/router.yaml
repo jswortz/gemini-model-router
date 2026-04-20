@@ -36,12 +36,19 @@ backends:
   capabilities:
   - stream
   - local
+  - long_ctx
   cost_in_per_1m: 0.0
   cost_out_per_1m: 0.0
   expected_latency_ms_per_1k_out: 80.0
-  max_context: 8192
+  # Gemma 4 E4B-it: 4.5B effective params, 128K context, multimodal-capable.
+  # https://huggingface.co/google/gemma-4-E4B
+  # Swap targets (see docs/cli.md "Swap to a bigger Gemma 4 variant"):
+  #   google/gemma-4-E2B-it       (2.3B/5.1B, 128K) — edge / lowest VRAM
+  #   google/gemma-4-26B-A4B-it   (4B active / 26B MoE, 128K) — bigger quality
+  #   google/gemma-4-31B-it       (31B dense, 256K) — highest quality, set max_context=262144
+  max_context: 131072
   endpoint: http://localhost:8000/v1
-  model: google/gemma-4-it
+  model: google/gemma-4-E4B-it
   extra_args: []
 - name: gemini
   kind: gemini_cli

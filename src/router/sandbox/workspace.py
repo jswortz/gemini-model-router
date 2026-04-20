@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 import shutil
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 # Auth env vars we forward into the subprocess (everything else is dropped).
 _AUTH_PASSTHROUGH = (

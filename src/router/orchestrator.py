@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 import ulid
 
@@ -44,6 +44,7 @@ class Orchestrator:
         # numpy + sentence-transformers cost.
         if self._classifier is None:
             from router.classifier.embed_anchors import EmbedAnchorsClassifier
+
             self._classifier = EmbedAnchorsClassifier(self.cfg.classifier)
         return self._classifier
 
@@ -56,7 +57,7 @@ class Orchestrator:
         results = await asyncio.gather(
             *(self.backends[n].health() for n in names), return_exceptions=True
         )
-        return {n: (r is True) for n, r in zip(names, results)}
+        return {n: (r is True) for n, r in zip(names, results, strict=True)}
 
     def _classify_and_score(
         self,

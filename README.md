@@ -8,18 +8,32 @@ to propose its own improvements.
 
 ## Install
 
+Recommended — install as a uv tool so the scripts land on `PATH` and work
+from any directory in any new shell:
+
 ```bash
 cd gemini-model-router
-pip install -e ".[dev]"
+uv tool install -e .
+uv tool update-shell           # one-time PATH fix; open a new terminal after
 ```
 
-This wires three console scripts: `router`, `router-repl`, `router-eval`.
+Alternative — editable install into a project venv (you must activate the
+venv or add `.venv/bin` to `PATH` to use `router`):
+
+```bash
+uv pip install -e ".[dev]"
+source .venv/bin/activate
+```
+
+This wires four console scripts: `router`, `router-repl`, `router-eval`,
+`router-config`. See [`docs/cli.md`](docs/cli.md#install) for extras and
+upgrade flow.
 
 ## Prerequisites
 
 - Local **vLLM** serving Gemma 4 on `localhost:8000`:
   ```bash
-  vllm serve google/gemma-4-it --port 8000
+  vllm serve google/gemma-4-E4B-it --port 8000
   ```
 - `gemini` CLI on `PATH`, with `GEMINI_API_KEY` (or Google Sign-in) configured.
 - `claude` CLI on `PATH`, with `ANTHROPIC_API_KEY` configured.
@@ -28,7 +42,7 @@ Override any of these in `config/router.yaml`.
 
 ## Usage
 
-One-shot:
+**One-shot mode:**
 
 ```bash
 router "what is the capital of France"
@@ -36,16 +50,30 @@ router "refactor src/auth/login.py to use async/await" --why
 router --force gemini "search the web for the latest k8s release notes"
 ```
 
-Interactive REPL:
+**Chat mode (TUI)** — `router` with no prompt at a TTY drops into a chat REPL with slash-command completion, a live status toolbar, multi-line input, and persistent history. The legacy `router-repl` is an alias for the same thing.
 
 ```bash
-router-repl
+router
 >>> what is REST
 >>> /why
+>>> /set policy.weights.cost 0.5
 >>> /route claude
 >>> implement a POST /users/{id}/avatar endpoint
 >>> /quit
 ```
+
+**Tune config from the CLI** — same validated edit path the web UI uses, with timestamped backups:
+
+```bash
+router config show
+router config get policy.weights.cost
+router config set policy.weights.cost 0.5
+router config anchor add gemma4 "what is JSON"
+router config rebuild-anchors
+router config backups list
+```
+
+See [`docs/cli.md`](docs/cli.md) for the full CLI reference, slash-command table, and config tuning workflows.
 
 ## How routing works
 
@@ -92,8 +120,8 @@ independently, so swapping back to a previously-used vendor mid-session resumes
 For the times when editing YAML by hand is the wrong tool:
 
 ```bash
-pip install -e ".[configsite]"
-router-config            # opens at http://127.0.0.1:8765
+uv tool install -e ".[configsite]"   # or: uv pip install -e ".[configsite]"
+router-config                        # opens at http://127.0.0.1:8765
 ```
 
 A single-page form for `router.yaml` + `anchors.yaml` — backends, weights,

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import httpx
 
@@ -43,33 +43,35 @@ class VLLMBackend(Backend):
         usage = Usage()
         t0 = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=5.0)) as client:
-                async with client.stream("POST", url, json=body) as resp:
-                    resp.raise_for_status()
-                    async for line in resp.aiter_lines():
-                        if not line or not line.startswith("data:"):
-                            continue
-                        payload = line[5:].strip()
-                        if payload == "[DONE]":
-                            break
-                        try:
-                            evt = json.loads(payload)
-                        except json.JSONDecodeError:
-                            continue
-                        # streamed token deltas
-                        for choice in evt.get("choices", []) or []:
-                            delta = choice.get("delta", {}).get("content")
-                            if delta:
-                                chunks.append(delta)
-                                if stream_to:
-                                    stream_to(delta)
-                        # final usage chunk (vLLM emits when include_usage=true)
-                        u = evt.get("usage")
-                        if u:
-                            usage = Usage(
-                                input_tokens=int(u.get("prompt_tokens", 0)),
-                                output_tokens=int(u.get("completion_tokens", 0)),
-                            )
+            async with (
+                httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=5.0)) as client,
+                client.stream("POST", url, json=body) as resp,
+            ):
+                resp.raise_for_status()
+                async for line in resp.aiter_lines():
+                    if not line or not line.startswith("data:"):
+                        continue
+                    payload = line[5:].strip()
+                    if payload == "[DONE]":
+                        break
+                    try:
+                        evt = json.loads(payload)
+                    except json.JSONDecodeError:
+                        continue
+                    # streamed token deltas
+                    for choice in evt.get("choices", []) or []:
+                        delta = choice.get("delta", {}).get("content")
+                        if delta:
+                            chunks.append(delta)
+                            if stream_to:
+                                stream_to(delta)
+                    # final usage chunk (vLLM emits when include_usage=true)
+                    u = evt.get("usage")
+                    if u:
+                        usage = Usage(
+                            input_tokens=int(u.get("prompt_tokens", 0)),
+                            output_tokens=int(u.get("completion_tokens", 0)),
+                        )
         except httpx.HTTPError as e:
             return BackendResponse(
                 text="",

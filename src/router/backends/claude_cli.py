@@ -4,8 +4,8 @@ import asyncio
 import json
 import shutil
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from router.backends.base import Backend, BackendResponse, Usage, compute_cost
 from router.config_loader import BackendCfg
