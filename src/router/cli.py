@@ -6,6 +6,7 @@ import sys
 
 from router import configcli
 from router.config_loader import load_config
+from router.env import load_dotenv
 from router.orchestrator import Orchestrator, find_default_config
 
 
@@ -39,8 +40,6 @@ def _build_oneshot_parser() -> argparse.ArgumentParser:
         help="Skip session affinity: re-classify even if the session is locked to a backend.",
     )
     return p
-
-
 
 
 async def _run_oneshot(args: argparse.Namespace) -> int:
@@ -98,6 +97,10 @@ def _should_enter_chat(args: argparse.Namespace) -> bool:
 
 
 def main() -> None:
+    # Pull in any `.env` (HF_TOKEN, vendor keys, etc.) before backends spin up.
+    # No-op if no .env exists; existing env vars always win.
+    load_dotenv()
+
     # `config` is dispatched off argv[0] explicitly so the one-shot `prompt`
     # positional doesn't get eaten by the subparser (e.g. `router "hello world"`
     # would otherwise be parsed as the subcommand `hello world`).

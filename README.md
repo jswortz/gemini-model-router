@@ -37,8 +37,12 @@ upgrade flow.
   ```
 - `gemini` CLI on `PATH`, with `GEMINI_API_KEY` (or Google Sign-in) configured.
 - `claude` CLI on `PATH`, with `ANTHROPIC_API_KEY` configured.
+- (Optional) `HF_TOKEN` for HuggingFace — silences the unauthenticated-Hub
+  warning when the MiniLM anchor cache is rebuilt.
 
-Override any of these in `config/router.yaml`.
+Override any of these in `config/router.yaml`. Or drop them in a `.env`
+(see `.env.example`); the router auto-loads it on startup, never overriding
+already-exported shell vars.
 
 ## Usage
 

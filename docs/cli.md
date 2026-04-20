@@ -38,6 +38,29 @@ uv pip install -e ".[dev]"
 source .venv/bin/activate    # or: export PATH="$PWD/.venv/bin:$PATH"
 ```
 
+### Environment / `.env`
+
+On startup the CLI auto-loads a `.env` from (in order) the current
+directory, the directory containing `router.yaml`, the parent of that
+directory, and finally the repo root. Existing shell env vars always win,
+so an explicit `export HF_TOKEN=...` overrides whatever's in the file.
+
+Copy the template and fill in what you need — every key is optional:
+
+```bash
+cp .env.example .env
+# then edit .env
+```
+
+The keys the router and its backends look for:
+
+| Key | Purpose |
+| --- | --- |
+| `HF_TOKEN` | HuggingFace read token. Silences the unauthenticated-Hub warning and raises rate limits when the MiniLM anchor cache is rebuilt. |
+| `GEMINI_API_KEY` | Picked up by the `gemini` CLI backend if not already authenticated. |
+| `ANTHROPIC_API_KEY` | Picked up by the `claude` CLI backend if not already authenticated. |
+| `TRANSFORMERS_VERBOSITY` | Set to `error` to suppress the cosmetic `embeddings.position_ids UNEXPECTED` warning from sentence-transformers. |
+
 Either way wires four console scripts (see `pyproject.toml` `[project.scripts]`):
 
 | Script          | Module entry              | What it does                                                                 |
