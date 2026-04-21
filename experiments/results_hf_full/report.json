@@ -1,0 +1,586 @@
+{
+  "variants": {
+    "baseline": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.0001116406,
+          7.582419000000001e-05,
+          0.00015023056599999994
+        ],
+        "latency_ms_per_prompt": [
+          14.741832,
+          13.306010000000004,
+          16.2618988
+        ],
+        "quality_fit_mean": [
+          0.47348864300847054,
+          0.46546745514415205,
+          0.480986914922595
+        ],
+        "total_cost_usd": 0.2791014999999998,
+        "backend_mix": {
+          "gemma4": 2376,
+          "gemini": 80,
+          "claude": 44
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "cost_tilted": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00010398775999999999,
+          7.111819e-05,
+          0.00014347576799999994
+        ],
+        "latency_ms_per_prompt": [
+          14.5762,
+          13.1972686,
+          16.091153799999997
+        ],
+        "quality_fit_mean": [
+          0.4727174343764782,
+          0.46481024596679954,
+          0.48016823168132455
+        ],
+        "total_cost_usd": 0.25996939999999985,
+        "backend_mix": {
+          "gemma4": 2379,
+          "gemini": 81,
+          "claude": 40
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "quality_tilted": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00021194979999999996,
+          0.00016967991900000001,
+          0.000258164738
+        ],
+        "latency_ms_per_prompt": [
+          19.098679999999998,
+          17.501837800000004,
+          20.869986
+        ],
+        "quality_fit_mean": [
+          0.5107697182029486,
+          0.5035170065323263,
+          0.51771204755418
+        ],
+        "total_cost_usd": 0.5298745,
+        "backend_mix": {
+          "gemma4": 2165,
+          "gemini": 215,
+          "claude": 120
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "latency_tilted": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00010852063999999999,
+          7.325650200000002e-05,
+          0.00014785209699999999
+        ],
+        "latency_ms_per_prompt": [
+          14.623664000000002,
+          13.1637132,
+          16.143013399999994
+        ],
+        "quality_fit_mean": [
+          0.4725767386615276,
+          0.46471298390064386,
+          0.4800139057650417
+        ],
+        "total_cost_usd": 0.2713015999999998,
+        "backend_mix": {
+          "gemma4": 2380,
+          "gemini": 79,
+          "claude": 41
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "no_bonuses": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00040957992,
+          0.00036416216800000005,
+          0.00045704115100000004
+        ],
+        "latency_ms_per_prompt": [
+          28.365536,
+          26.6148488,
+          30.1709346
+        ],
+        "quality_fit_mean": [
+          0.556617089164257,
+          0.5511557236169279,
+          0.5621030164086074
+        ],
+        "total_cost_usd": 1.0239497999999998,
+        "backend_mix": {
+          "gemma4": 1598,
+          "gemini": 559,
+          "claude": 343
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "softer_bonuses": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.000309781,
+          0.00026650561900000007,
+          0.00035630135299999995
+        ],
+        "latency_ms_per_prompt": [
+          23.555272,
+          21.897943400000003,
+          25.367167
+        ],
+        "quality_fit_mean": [
+          0.5406871578454971,
+          0.5346995751103014,
+          0.5465245638608933
+        ],
+        "total_cost_usd": 0.7744525000000002,
+        "backend_mix": {
+          "gemma4": 1905,
+          "gemini": 358,
+          "claude": 237
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "cost_no_bonuses": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00039498755999999995,
+          0.000351462024,
+          0.00043981957
+        ],
+        "latency_ms_per_prompt": [
+          28.039983999999997,
+          26.3456218,
+          29.802000800000002
+        ],
+        "quality_fit_mean": [
+          0.556501790830493,
+          0.5510181709583848,
+          0.5620341307474672
+        ],
+        "total_cost_usd": 0.987468900000001,
+        "backend_mix": {
+          "gemma4": 1604,
+          "gemini": 565,
+          "claude": 331
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "qual_no_bonuses": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00045691064,
+          0.000406545528,
+          0.0005082619529999999
+        ],
+        "latency_ms_per_prompt": [
+          30.048128000000002,
+          28.179660799999997,
+          32.0159492
+        ],
+        "quality_fit_mean": [
+          0.5595414616554976,
+          0.5542437275045364,
+          0.5648245621255785
+        ],
+        "total_cost_usd": 1.1422765999999984,
+        "backend_mix": {
+          "gemma4": 1521,
+          "gemini": 592,
+          "claude": 387
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "all_gemma4": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "latency_ms_per_prompt": [
+          10.036672,
+          9.684086399999998,
+          10.3863136
+        ],
+        "quality_fit_mean": [
+          0.4436915330082178,
+          0.43608334995009,
+          0.45158473164349794
+        ],
+        "total_cost_usd": 0.0,
+        "backend_mix": {
+          "gemma4": 2500
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "all_gemini": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.00033250004,
+          0.00032122065200000004,
+          0.000344888878
+        ],
+        "latency_ms_per_prompt": [
+          43.910439999999994,
+          42.367878,
+          45.440122
+        ],
+        "quality_fit_mean": [
+          0.3003019409649074,
+          0.29332061412280425,
+          0.3069515054666624
+        ],
+        "total_cost_usd": 0.8312500999999995,
+        "backend_mix": {
+          "gemini": 2500
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    },
+    "all_claude": {
+      "all": {
+        "n": 2500,
+        "cost_usd_per_prompt": [
+          0.0020704164,
+          0.0020001025799999995,
+          0.0021474427799999998
+        ],
+        "latency_ms_per_prompt": [
+          75.27503999999999,
+          72.630648,
+          77.897352
+        ],
+        "quality_fit_mean": [
+          0.2560065263450146,
+          0.24994794912237675,
+          0.26235277602622287
+        ],
+        "total_cost_usd": 5.176040999999998,
+        "backend_mix": {
+          "claude": 2500
+        }
+      },
+      "real_only": {
+        "n": 0,
+        "cost_usd_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "latency_ms_per_prompt": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "quality_fit_mean": [
+          NaN,
+          NaN,
+          NaN
+        ],
+        "total_cost_usd": 0,
+        "backend_mix": {}
+      }
+    }
+  },
+  "comparisons": {
+    "baseline_vs_all_claude_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.0020704164,
+      "delta_per_prompt": -0.0019587758,
+      "delta_pct_vs_other": -94.60781898752349,
+      "welch_t": -46.5666020801948,
+      "approx_p": 0.0
+    },
+    "baseline_vs_all_gemini_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00033250004,
+      "delta_per_prompt": -0.00022085944,
+      "delta_pct_vs_other": -66.42388373848014,
+      "welch_t": -11.195935116953617,
+      "approx_p": 0.0
+    },
+    "baseline_vs_all_gemma4_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.0,
+      "delta_per_prompt": 0.0001116406,
+      "delta_pct_vs_other": 11164060000.0,
+      "welch_t": 5.945036488636457,
+      "approx_p": 2.7639528443756944e-09
+    },
+    "baseline_vs_cost_tilted_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00010398775999999999,
+      "delta_per_prompt": 7.652840000000005e-06,
+      "delta_pct_vs_other": 7.359366140784267,
+      "welch_t": 0.2958976189706426,
+      "approx_p": 0.7673082694783113
+    },
+    "baseline_vs_quality_tilted_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00021194979999999996,
+      "delta_per_prompt": -0.00010030919999999996,
+      "delta_pct_vs_other": -47.32686702228546,
+      "welch_t": -3.4291613915402857,
+      "approx_p": 0.0006054493849716458
+    },
+    "baseline_vs_latency_tilted_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00010852063999999999,
+      "delta_per_prompt": 3.119960000000008e-06,
+      "delta_pct_vs_other": 2.874992259536995,
+      "welch_t": 0.11772672825013347,
+      "approx_p": 0.9062841879640493
+    },
+    "baseline_vs_no_bonuses_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00040957992,
+      "delta_per_prompt": -0.00029793932,
+      "delta_pct_vs_other": -72.74265789201776,
+      "welch_t": -9.918068508210704,
+      "approx_p": 0.0
+    },
+    "baseline_vs_softer_bonuses_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.000309781,
+      "delta_per_prompt": -0.00019814040000000002,
+      "delta_pct_vs_other": -63.96144372960253,
+      "welch_t": -6.779535400989942,
+      "approx_p": 1.20561338690095e-11
+    },
+    "baseline_vs_cost_no_bonuses_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00039498755999999995,
+      "delta_per_prompt": -0.0002833469599999999,
+      "delta_pct_vs_other": -71.73566681441815,
+      "welch_t": -9.665405491517069,
+      "approx_p": 0.0
+    },
+    "baseline_vs_qual_no_bonuses_cost": {
+      "mean_baseline": 0.0001116406,
+      "mean_other": 0.00045691064,
+      "delta_per_prompt": -0.00034527004,
+      "delta_pct_vs_other": -75.56620699399778,
+      "welch_t": -10.954003817522336,
+      "approx_p": 0.0
+    }
+  }
+}

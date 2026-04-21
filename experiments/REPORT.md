@@ -257,9 +257,44 @@ API is broken.
 
 ---
 
+## Finding 3 — HuggingFace benchmark replay confirms local-short dominance
+
+Replayed 2,500 prompts from five standard HF benchmarks (MMLU, GSM8K,
+ARC-Challenge, HellaSwag, Winogrande; 500 each, shuffled with seed 42)
+through all 11 config variants. No backends invoked — pure decision replay.
+
+**Key results:**
+
+| Config | gemma4 | gemini | claude | Cost/req $ | quality_fit |
+| --- | --- | --- | --- | --- | --- |
+| baseline | 95.0% | 3.2% | 1.8% | 0.00011 | 0.473 |
+| quality_tilted | 86.6% | 8.6% | 4.8% | 0.00021 | 0.511 |
+| no_bonuses | 63.9% | 22.4% | 13.7% | 0.00041 | 0.557 |
+| all_claude | 0% | 0% | 100% | 0.00207 | 0.256 |
+
+- **Router baseline saves 94.6% cost vs. all-Claude** (p≈0, t=−46.57).
+  The BQ-data result was 35% savings; the benchmark gap is wider because
+  benchmark prompts are uniformly short Q&A — exactly the regime where the
+  `local_short` bonus pushes everything to gemma4.
+- **Removing capability bonuses** (`no_bonuses`) redistributes traffic to
+  36% non-gemma4, bumping mean quality_fit from 0.473 → 0.557 at 3.7× cost.
+  This confirms Finding 1: bonuses, not weights, are the dominant signal.
+- **quality_tilted** nudges 8.4% more traffic to gemini/claude (quality_fit
+  +0.038), validating that the weight refactor from Finding 1 now actually
+  moves the needle.
+- **All benchmark prompts are short, non-tool, non-code** — the router
+  correctly identifies this and routes locally. A benchmark with tool-use
+  or agentic prompts (e.g., SWE-bench) would shift the mix toward claude.
+
+Artifacts: `experiments/results_hf_full/results.json`, `report.json`.
+Run: `python experiments/replay.py --benchmark mmlu gsm8k arc hellaswag winogrande --benchmark-limit 500 --out experiments/results_hf_full`
+
+---
+
 ## Follow-ups
 
 - **Task #11** *(blocked, environmental)*: real quality judge — see "Quality judge experiment — status" above. Re-run after Gemini API key renewal.
 - **Task #12** *(merged)*: SLM/Gemma 4 fine-tuning plan — see [`SLM_PLAN.md`](./SLM_PLAN.md).
 - **Task #18** *(new)*: harden `judge.py:print_report` against zero-pair runs.
+- **Task #19** *(new)*: replay on tool-use / agentic benchmarks (SWE-bench, GAIA) to validate claude routing path.
 - **Open**: re-attempt PaperBanana for Figs 2-3 once the gemini-3.1 image API key is renewed.

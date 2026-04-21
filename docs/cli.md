@@ -224,6 +224,10 @@ schema violation, missing backup, anchor index out of range).
 
 ## Configurable keys (cheatsheet)
 
+<p align="center">
+  <img src="figures/fig_scoring_formula.png" alt="Scoring formula with worked example" width="700">
+</p>
+
 The most common dotted paths, with defaults from `config/router.yaml`:
 
 | Path                                                            | Default                              | What it does                                                                                          |

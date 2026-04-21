@@ -83,6 +83,10 @@ See [`docs/cli.md`](docs/cli.md) for the full CLI reference, slash-command table
 
 ## How routing works
 
+<p align="center">
+  <img src="docs/figures/fig_routing_pipeline.png" alt="Routing pipeline — four-stage decision flow" width="800">
+</p>
+
 1. **Hard rules** (`policy/rules.py`) — secrets force local, `--force` flag
    wins, candidates with insufficient context window or that are unhealthy are
    dropped.
@@ -96,6 +100,10 @@ See [`docs/cli.md`](docs/cli.md) for the full CLI reference, slash-command table
    safest cheapest backend (`gemma4`).
 
 ## Session affinity
+
+<p align="center">
+  <img src="docs/figures/fig_session_affinity.png" alt="Session affinity state machine" width="800">
+</p>
 
 A multi-turn conversation should not bounce between vendors — that loses prompt
 caching, MCP tool registries, and (worst of all) the model's own memory of the
@@ -140,11 +148,15 @@ router invocation.
 
 ## Self-improvement loop
 
+<p align="center">
+  <img src="docs/figures/fig_self_improvement_loop.png" alt="Self-improvement loop" width="800">
+</p>
+
 Every call appends a line to `~/.router/sessions/router_history.jsonl` in the
 exact shape `gemini-dreams` reads. Wire it with one config edit:
 
 ```jsonc
-// ~/.gemini-dreams/config.json
+// ~/.gemini/dream_config.json  (add to existing "agents" block)
 {
   "agents": {
     "router": { "logs_dir": "~/.router/sessions", "turn_threshold": 1 }
@@ -176,6 +188,10 @@ move-to claude: "trace through this stack trace and find the root cause"
 ```
 
 ## Sandboxing
+
+<p align="center">
+  <img src="docs/figures/fig_sandbox_modes.png" alt="Sandbox modes" width="800">
+</p>
 
 Three modes for where backend sub-CLIs see the filesystem, set via
 `sandbox.mode` in `router.yaml`:

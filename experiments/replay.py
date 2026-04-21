@@ -135,6 +135,80 @@ def synthesize(n: int, seed: int = 42) -> list[dict]:
     return out
 
 
+# ---------- HuggingFace benchmark loading ----------
+
+_HF_BENCHMARKS = {
+    "mmlu": {
+        "repo": "cais/mmlu",
+        "subset": "all",
+        "split": "test",
+        "format": lambda ex: (
+            f"{ex['question']}\n"
+            f"A) {ex['choices'][0]}\nB) {ex['choices'][1]}\n"
+            f"C) {ex['choices'][2]}\nD) {ex['choices'][3]}"
+        ),
+    },
+    "gsm8k": {
+        "repo": "openai/gsm8k",
+        "subset": "main",
+        "split": "test",
+        "format": lambda ex: ex["question"],
+    },
+    "arc": {
+        "repo": "allenai/ai2_arc",
+        "subset": "ARC-Challenge",
+        "split": "test",
+        "format": lambda ex: (
+            f"{ex['question']}\n"
+            + "\n".join(
+                f"{label}) {text}"
+                for label, text in zip(
+                    ex["choices"]["label"], ex["choices"]["text"], strict=True
+                )
+            )
+        ),
+    },
+    "hellaswag": {
+        "repo": "Rowan/hellaswag",
+        "subset": None,
+        "split": "validation",
+        "format": lambda ex: f"{ex['ctx']}",
+    },
+    "winogrande": {
+        "repo": "allenai/winogrande",
+        "subset": "winogrande_xl",
+        "split": "validation",
+        "format": lambda ex: f"{ex['sentence']}",
+    },
+}
+
+
+def load_hf_benchmark(name: str, limit: int = 500, seed: int = 42) -> list[dict]:
+    from datasets import load_dataset
+
+    spec = _HF_BENCHMARKS[name]
+    kwargs = {"path": spec["repo"], "split": spec["split"]}
+    if spec["subset"]:
+        kwargs["name"] = spec["subset"]
+    ds = load_dataset(**kwargs)
+    if limit and len(ds) > limit:
+        ds = ds.shuffle(seed=seed).select(range(limit))
+    out = []
+    for i, ex in enumerate(ds):
+        try:
+            prompt = spec["format"](ex)
+        except (KeyError, IndexError):
+            continue
+        out.append({
+            "prompt": prompt,
+            "session_id": f"hf-{name}-{i}",
+            "agent_name": f"hf_{name}",
+            "cli_type": f"hf_{name}",
+            "latency_ms": None,
+        })
+    return out
+
+
 # ---------- config variants ----------
 
 def _clone_with(cfg: RouterConfig, *, w_q=None, w_c=None, w_l=None,
@@ -264,18 +338,40 @@ def main() -> None:
     p.add_argument("--augment", type=int, default=1000)
     p.add_argument("--bootstrap", type=int, default=2000)
     p.add_argument("--out", type=Path, default=ROOT / "experiments/results")
+    p.add_argument(
+        "--benchmark",
+        nargs="*",
+        metavar="NAME",
+        help=f"HuggingFace benchmarks to include: {', '.join(_HF_BENCHMARKS)}. "
+        "Omit names to run all. Replaces --raw + --augment when set.",
+    )
+    p.add_argument("--benchmark-limit", type=int, default=500,
+                   help="Max prompts per benchmark dataset (default: 500)")
     args = p.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
 
-    print("[1/5] loading real prompts from BQ dump…", flush=True)
-    real = parse_bq_rows(args.raw)
-    print(f"      real prompts: {len(real)}")
+    if args.benchmark is not None:
+        bench_names = args.benchmark or list(_HF_BENCHMARKS)
+        all_prompts: list[dict] = []
+        for bname in bench_names:
+            if bname not in _HF_BENCHMARKS:
+                print(f"unknown benchmark: {bname} (available: {', '.join(_HF_BENCHMARKS)})")
+                sys.exit(2)
+            print(f"[1/5] loading HF benchmark: {bname}…", flush=True)
+            rows = load_hf_benchmark(bname, limit=args.benchmark_limit)
+            print(f"      {bname}: {len(rows)} prompts")
+            all_prompts.extend(rows)
+        print(f"      total benchmark prompts: {len(all_prompts)}")
+    else:
+        print("[1/5] loading real prompts from BQ dump…", flush=True)
+        real = parse_bq_rows(args.raw)
+        print(f"      real prompts: {len(real)}")
 
-    print(f"[2/5] synthesizing {args.augment} prompts to reach significance…", flush=True)
-    synth = synthesize(args.augment)
-    all_prompts = real + synth
-    print(f"      total prompts: {len(all_prompts)} ({len(real)} real, {len(synth)} synthetic)")
+        print(f"[2/5] synthesizing {args.augment} prompts to reach significance…", flush=True)
+        synth = synthesize(args.augment)
+        all_prompts = real + synth
+        print(f"      total prompts: {len(all_prompts)} ({len(real)} real, {len(synth)} synthetic)")
 
     print("[3/5] loading router config + warming MiniLM classifier…", flush=True)
     base_cfg = load_config(args.config)
@@ -291,12 +387,18 @@ def main() -> None:
     results: dict[str, list[dict]] = {}
     t0 = time.time()
 
+    def _source(sid: str) -> str:
+        if sid.startswith("synth-"):
+            return "synth"
+        if sid.startswith("hf-"):
+            return sid.split("-", 2)[1]  # e.g. "mmlu", "gsm8k"
+        return "real"
+
     for name, cfg in variants.items():
         rows = []
         for rec in all_prompts:
             r = replay_one(rec["prompt"], cfg, classifier, health)
-            r["source"] = "real" if rec["session_id"].startswith(("synth-",)) is False else "synth"
-            r["source"] = "synth" if rec["session_id"].startswith("synth-") else "real"
+            r["source"] = _source(rec["session_id"])
             rows.append(r)
         results[name] = rows
         print(f"      router_{name}: done")
@@ -306,7 +408,7 @@ def main() -> None:
         for rec in all_prompts:
             r = replay_one(rec["prompt"], base_cfg, classifier, health,
                            force_backend=forced)
-            r["source"] = "synth" if rec["session_id"].startswith("synth-") else "real"
+            r["source"] = _source(rec["session_id"])
             rows.append(r)
         results[f"all_{forced}"] = rows
         print(f"      all_{forced}: done")
